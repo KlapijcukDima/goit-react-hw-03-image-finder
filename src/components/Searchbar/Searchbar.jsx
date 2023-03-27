@@ -1,34 +1,40 @@
-import PropTypes from 'prop-types';
 import { Component } from 'react';
+import SearchbarStyle from './Searchbar.module.css';
+import { FiSearch } from 'react-icons/fi';
+import { PropTypes } from 'prop-types';
 
 export class Searchbar extends Component {
   state = {
-    query: '',
+    value: '',
   };
-  handleChange = e => {
-    const value = e.target.value.trimStart();
-    this.setState({ query: value });
+
+  hanleSubmit = event => {
+    event.preventDefault();
+    this.props.onSubmit(this.state.value);
+    this.setState({ value: '' });
   };
-  handleSubmit = e => {
-    e.preventDefault();
-    if (this.state.query.length === 0) return;
-    this.props.onSubmit(this.state.query);
+
+  handleChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
   };
+
   render() {
-    const { query } = this.state;
     return (
-      <header className="searchbar">
-        <form className="searchForm" onSubmit={this.handleSubmit}>
-          <button type="submit" className="searchForm-button">
-            <span className="searchForm-button-label">Search</span>
+      <header className={SearchbarStyle.searchbar}>
+        <form className={SearchbarStyle.searchForm} onSubmit={this.hanleSubmit}>
+          <button type="submit" className={SearchbarStyle.searchFormButton}>
+            <span className={SearchbarStyle.searchFormButtonLabel}>
+              <FiSearch />
+            </span>
           </button>
 
           <input
-            className="searchForm-input"
+            className={SearchbarStyle.searchFormInput}
             type="text"
+            name="value"
             autoComplete="off"
             autoFocus
-            value={query}
+            value={this.state.value}
             onChange={this.handleChange}
             placeholder="Search images and photos"
           />
@@ -37,8 +43,6 @@ export class Searchbar extends Component {
     );
   }
 }
-
-export default Searchbar;
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,

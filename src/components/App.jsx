@@ -1,98 +1,42 @@
 import { Component } from 'react';
-import api from '../utils/api';
-import Loader from './Loader/Loader';
-import Searchbar from './Searchbar/Searchbar';
-import ImageGallery from './ImageGallery/ImageGallery';
-import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
-import Button from './Button/Button';
-import Modal from './Modal/Modal';
+import { Searchbar } from './Searchbar';
+import { ImageGallery } from './ImageGallery';
+import { Modal } from './Modal/Modal';
 
 export class App extends Component {
   state = {
-    page: 1,
-    query: '',
-    receivedData: [],
-    totalHits: null,
-    status: 'static',
-    forModal: {},
-    error: '',
-  };
-  /* loading, static, modal, error */
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    if (prevState.receivedData !== this.state.receivedData) {
-      const height = document.body.clientHeight;
-      return height;
-    }
-    return null;
-  }
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    const { query, page, receivedData } = this.state;
-    if (prevState.query !== query || prevState.page !== page) {
-      this.setState({ status: 'loading' });
-      this.dataRequest();
-    }
-    if (prevState.receivedData !== receivedData && page > 1) {
-      window.scrollTo({
-        top: snapshot - 250,
-        behavior: 'smooth',
-      });
-    }
-  }
-
-  async dataRequest() {
-    const { page, query } = this.state;
-    try {
-      const data = await api(query, page);
-
-      this.setState(prevState => ({
-        receivedData: [...prevState.receivedData, ...data.hits],
-        status: 'static',
-        totalHits: data.totalHits,
-      }));
-    } catch (error) {
-      this.setState({ status: 'error', error });
-    }
-  }
-
-  onSubmit = async query => {
-    if (this.state.query === query && this.state.page === 1) return;
-    this.setState({ query, receivedData: [], page: 1, totalHits: null });
+    isOpenModal: false,
+    searchValue: 'wave',
+    currentImage: null,
   };
 
-  onClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  toggleModal = event => {
+    this.setState(prevState => ({
+      isOpenModal: !prevState.isOpenModal,
+    }));
   };
 
-  onOpenModal = (src, alt) => {
-    this.setState({ status: 'modal', forModal: { src, alt } });
+  openModal = largeImage => {
+    this.setState({
+      currentImage: largeImage,
+      isOpenModal: true,
+    });
   };
 
-  toggleModale = () => {
-    this.setState({ status: 'static' });
+  handleSubmit = searchValue => {
+    this.setState({ searchValue });
   };
 
   render() {
-    const { page, totalHits, status, forModal, receivedData, error } = this.state;
-    const totalPage = Math.ceil(totalHits / 12);
+    const { isOpenModal, currentImage } = this.state;
     return (
-      <>
-        <div className="app">
-          <Searchbar onSubmit={this.onSubmit} />
-
-          {receivedData.length > 0 && (
-            <ImageGallery>
-              <ImageGalleryItem data={receivedData} onOpenModal={this.onOpenModal} />
-            </ImageGallery>
-          )}
-
-          {status === 'loading' && <Loader />}
-
-          {status === 'error' && <p style={{ textAlign: 'center' }}>{error.message}</p>}
-
-          {totalPage > page && <Button onClick={this.onClick} />}
-        </div>
-        {status === 'modal' && <Modal forModal={forModal} toggleModale={this.toggleModale} />}
-      </>
+      <main>
+        <Searchbar onSubmit={this.handleSubmit} />
+        <ImageGallery value={this.state.searchValue} onClick={this.openModal} />
+        {isOpenModal && (
+          <Modal onClose={this.toggleModal} currentImage={currentImage} />
+        )}
+      </main>
     );
   }
 }

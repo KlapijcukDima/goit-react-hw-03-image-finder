@@ -1,43 +1,44 @@
 import { Component } from 'react';
-import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import ModalStyle from './Modal.module.css';
 
-const modalRoot = document.getElementById('modalRoot');
-
-export default class Modal extends Component {
+export class Modal extends Component {
   componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keydown', this.handleKeyModalClose);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keydown', this.handleKeyModalClose);
   }
 
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      this.props.toggleModale();
+  handleKeyModalClose = event => {
+    if (event.code === 'Escape') {
+      this.props.onClose();
     }
   };
 
-  handleCloseBackdrop = e => {
-    if (e.target.nodeName !== 'DIV') return;
-    this.props.toggleModale();
+  handleBackdropClick = event => {
+    if (event.target === event.currentTarget) {
+      this.props.onClose();
+    }
   };
 
   render() {
-    const { forModal } = this.props;
-    return createPortal(
-      <div className="overlay" onClick={this.handleCloseBackdrop}>
-        <div className="modal">
-          <img src={forModal.src} alt={forModal.alt} />
+    return (
+      <div className={ModalStyle.overlay} onClick={this.handleBackdropClick}>
+        <div className={ModalStyle.modal}>
+          <img
+            className={ModalStyle.modalImage}
+            src={this.props.currentImage}
+            alt="lalala"
+          />
         </div>
-      </div>,
-      modalRoot
+      </div>
     );
   }
 }
 
 Modal.propTypes = {
-  toggleModale: PropTypes.func.isRequired,
-  forModal: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
+  currentImage: PropTypes.string.isRequired,
 };
